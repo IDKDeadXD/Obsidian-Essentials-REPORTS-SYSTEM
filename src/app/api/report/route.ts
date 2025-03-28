@@ -3,8 +3,8 @@ import { sendDiscordWebhook } from '@/lib/discord';
 
 // Declare global types to avoid TypeScript errors
 declare global {
-  var submissionTimes: Record<string, number>;
-  var lastSubmittedReport: {
+  let submissionTimes: Record<string, number>;
+  let lastSubmittedReport: {
     title: string;
     description: string;
   } | null;

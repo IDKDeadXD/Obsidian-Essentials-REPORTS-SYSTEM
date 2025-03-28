@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useRef } from 'react';
 
 // Define a custom error type
 interface ReportError {
@@ -15,7 +15,7 @@ export default function ReportForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Correct way to create a ref using useRef
-  const fileInputRef = useState<HTMLInputElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -79,7 +79,6 @@ export default function ReportForm() {
     }
   };
 
-  // Rest of the component remains the same
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4 relative">
       <div className="bg-black border-2 border-white p-8 rounded-lg shadow-xl w-full max-w-md">
@@ -107,7 +106,7 @@ export default function ReportForm() {
             className="w-full text-white border border-white rounded"
             accept="image/*,application/pdf"
             disabled={isSubmitting}
-            ref={(el) => fileInputRef.current = el}
+            ref={fileInputRef}
           />
           <button
             type="submit"

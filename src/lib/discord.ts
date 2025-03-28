@@ -4,39 +4,68 @@ import FormData from 'form-data';
 export async function sendDiscordWebhook(
   title: string, 
   description: string, 
-  file?: File
+  imageBuffer?: Buffer | null,
+  filename?: string
 ) {
   const webhookUrl = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL;
   
+  console.log('Webhook called with:', { title, description, hasImage: !!imageBuffer });
+
   if (!webhookUrl) {
-    throw new Error('Discord webhook URL is not configured');
-  }
-
-  const formData = new FormData();
-  
-  // Add text payload
-  formData.append('payload_json', JSON.stringify({
-    embeds: [{
-      title: title,
-      description: description,
-      color: 0x3498db // Blue color
-    }]
-  }));
-
-  // Add file if exists
-  if (file) {
-    formData.append('file', file, file.name);
+    console.error('Discord webhook URL is missing');
+    throw new Error('Discord webhook not configured');
   }
 
   try {
-    const response = await axios.post(webhookUrl, formData, {
+    // If no image, send simple text embed
+    if (!imageBuffer) {
+      await axios.post(webhookUrl, {
+        embeds: [{
+          title: title ? `Bug Report: ${title}` : 'Bug Report',
+          description: description || 'No description provided',
+          color: 0xFFFFFF,
+          footer: {
+            text: `Submitted at ${new Date().toLocaleString()}`
+          }
+        }]
+      });
+      
+      console.log('Text-only webhook message sent successfully');
+      return;
+    }
+
+    // If image exists, use FormData to send embed with image
+    const formData = new FormData();
+    
+    const payload = {
+      embeds: [{
+        title: title ? `Bug Report: ${title}` : 'Bug Report',
+        description: description || 'No description provided',
+        color: 0xFFFFFF,
+        image: {
+          url: `attachment://${filename || 'image.png'}`
+        },
+        footer: {
+          text: `Submitted at ${new Date().toLocaleString()}`
+        }
+      }]
+    };
+
+    formData.append('payload_json', JSON.stringify(payload));
+    formData.append('files[0]', imageBuffer, {
+      filename: filename || 'image.png',
+      contentType: 'image/png'
+    });
+
+    await axios.post(webhookUrl, formData, {
       headers: {
         ...formData.getHeaders()
       }
     });
-    return response.data;
+
+    console.log('Webhook message with image sent successfully');
   } catch (error) {
     console.error('Discord webhook error:', error);
-    throw error;
+    throw new Error('Failed to send report to Discord');
   }
 }

@@ -21,6 +21,24 @@ const setGlobalProperty = <K extends keyof GlobalThis>(key: K, value: GlobalThis
   (globalThis as unknown as GlobalThis)[key] = value;
 };
 
+// Function to extract client IP address
+const getClientIp = (req: NextRequest): string => {
+  // Try different headers used for IP identification
+  const ipHeaders = [
+    'x-forwarded-for',
+    'x-real-ip',
+    'cf-connecting-ip',
+    'fastly-client-ip'
+  ];
+
+  for (const header of ipHeaders) {
+    const ip = req.headers.get(header);
+    if (ip) return ip.split(',')[0].trim();
+  }
+
+  return 'unknown';
+};
+
 // Initialize global variables if not already set
 setGlobalProperty('submissionTimes', getGlobalProperty('submissionTimes') || {});
 setGlobalProperty('lastSubmittedReport', getGlobalProperty('lastSubmittedReport') || null);
@@ -28,7 +46,7 @@ setGlobalProperty('lastSubmittedReport', getGlobalProperty('lastSubmittedReport'
 export async function POST(req: NextRequest) {
   try {
     const { title, description } = await req.json();
-    const clientIp = req.ip || 'unknown';
+    const clientIp = getClientIp(req);
 
     console.log('Received text report:', { title, description });
 

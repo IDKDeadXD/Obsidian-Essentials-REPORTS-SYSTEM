@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bug Reporting System
 
-## Getting Started
+## Overview
 
-First, run the development server:
+A reporting system for people that can't join our discord, this allows them to report bugs to us with out needing to join our discord
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Intuitive Reporting Interface**: Minimalist, dark-themed submission form
+- **Flexible Attachment Support**: Optional image uploads
+- **Abuse Prevention**: IP-based rate limiting
+- **Real-time Notifications**: Direct Discord webhook integration
+- **Comprehensive Error Handling**: Detailed user feedback and logging
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Technology Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Next.js 13
+- TypeScript
+- Tailwind CSS
+- Discord Webhooks
 
-## Learn More
+## Prerequisites
 
-To learn more about Next.js, take a look at the following resources:
+- Node.js 16+
+- npm or Yarn
+- Discord Webhook URL
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Submission Limits
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Rate limited to one submission per IP address per 10 minutes
+- Supports image uploads (PNG, JPEG, GIF)
+- Maximum file size determined by server configuration
 
-## Deploy on Vercel
+## Security Considerations
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- IP-based submission throttling
+- Strict file type validation
+- Secure webhook transmission
+- Comprehensive error logging
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## License
+
+Distributed under the MIT License.
+
+## Contact
+
+For support or inquiries, please email contact@deadstudios.xyz

@@ -2,6 +2,11 @@
 
 import { useState, FormEvent } from 'react';
 
+// Define a custom error type
+interface ReportError {
+  message?: string;
+}
+
 export default function ReportForm() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -9,7 +14,7 @@ export default function ReportForm() {
   const [status, setStatus] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Add a reference to the file input
+  // Correct way to create a ref using useRef
   const fileInputRef = useState<HTMLInputElement | null>(null);
 
   const handleSubmit = async (e: FormEvent) => {
@@ -31,7 +36,7 @@ export default function ReportForm() {
       });
 
       if (!textResponse.ok) {
-        const errorData = await textResponse.json();
+        const errorData: ReportError = await textResponse.json();
         throw new Error(errorData.message || 'Submission failed');
       }
 
@@ -46,7 +51,7 @@ export default function ReportForm() {
         });
 
         if (!fileResponse.ok) {
-          const errorData = await fileResponse.json();
+          const errorData: ReportError = await fileResponse.json();
           throw new Error(errorData.message || 'File upload failed');
         }
       }
@@ -62,13 +67,19 @@ export default function ReportForm() {
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
-    } catch (error: any) {
-      setStatus(error.message || 'An error occurred');
+    } catch (error) {
+      // Type guard to handle error
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'An unexpected error occurred';
+      
+      setStatus(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  // Rest of the component remains the same
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4 relative">
       <div className="bg-black border-2 border-white p-8 rounded-lg shadow-xl w-full max-w-md">

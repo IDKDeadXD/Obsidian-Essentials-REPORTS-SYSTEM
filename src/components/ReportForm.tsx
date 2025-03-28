@@ -2,6 +2,11 @@
 
 import { useState, FormEvent, ChangeEvent } from 'react';
 
+// Define an interface for error response
+interface ErrorResponse {
+  message?: string;
+}
+
 export default function ReportForm() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -28,7 +33,7 @@ export default function ReportForm() {
       });
 
       if (!textResponse.ok) {
-        const errorData = await textResponse.json();
+        const errorData: ErrorResponse = await textResponse.json();
         throw new Error(errorData.message || 'Submission failed');
       }
 
@@ -43,7 +48,7 @@ export default function ReportForm() {
         });
 
         if (!fileResponse.ok) {
-          const errorData = await fileResponse.json();
+          const errorData: ErrorResponse = await fileResponse.json();
           throw new Error(errorData.message || 'File upload failed');
         }
       }
@@ -52,8 +57,13 @@ export default function ReportForm() {
       setTitle('');
       setDescription('');
       setFile(null);
-    } catch (error: any) {
-      setStatus(error.message || 'An error occurred');
+    } catch (error) {
+      // Type-safe error handling
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'An unexpected error occurred';
+      
+      setStatus(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

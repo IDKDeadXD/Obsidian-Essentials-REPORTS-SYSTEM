@@ -134,7 +134,7 @@ export default function ReportForm() {
       {/* Social Icons */}
       <div className="absolute bottom-4 left-4 flex space-x-4">
         <a 
-          href="https://github.com/yourusername/yourrepo" 
+          href="https://github.com/IDKDeadXD/Obsidian-Essentials-REPORTS-SYSTEM" 
           target="_blank" 
           rel="noopener noreferrer"
           className="text-white hover:text-gray-300 transition"
@@ -144,7 +144,7 @@ export default function ReportForm() {
           </svg>
         </a>
         <a 
-          href="https://discord.gg/yourdiscordinvite" 
+          href="https://discord.gg/CDbtnyJMUY" 
           target="_blank" 
           rel="noopener noreferrer"
           className="text-white hover:text-gray-300 transition"

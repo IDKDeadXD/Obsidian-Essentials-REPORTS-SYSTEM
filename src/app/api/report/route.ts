@@ -1,6 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendDiscordWebhook } from '@/lib/discord';
 
+// Declare global types to avoid TypeScript errors
+declare global {
+  var submissionTimes: Record<string, number>;
+  var lastSubmittedReport: {
+    title: string;
+    description: string;
+  } | null;
+}
+
+// Initialize global variables if not already set
+globalThis.submissionTimes = globalThis.submissionTimes || {};
+globalThis.lastSubmittedReport = globalThis.lastSubmittedReport || null;
+
 export async function POST(req: NextRequest) {
   try {
     const { title, description } = await req.json();
@@ -10,8 +23,8 @@ export async function POST(req: NextRequest) {
 
     // Check rate limit (10 minutes = 600000 ms)
     const currentTime = Date.now();
-    if (submissionTimes[clientIp] && 
-        currentTime - submissionTimes[clientIp] < 600000) {
+    if (globalThis.submissionTimes[clientIp] && 
+        currentTime - globalThis.submissionTimes[clientIp] < 600000) {
       return NextResponse.json(
         { message: 'Please wait 10 minutes between submissions' }, 
         { status: 429 }
@@ -27,7 +40,7 @@ export async function POST(req: NextRequest) {
 
     // Store the report details and submission time
     globalThis.lastSubmittedReport = { title, description };
-    submissionTimes[clientIp] = currentTime;
+    globalThis.submissionTimes[clientIp] = currentTime;
 
     return NextResponse.json({ 
       message: 'Report text submitted successfully'
@@ -77,10 +90,14 @@ export async function PUT(req: NextRequest) {
     const buffer = await file.arrayBuffer();
     const fileBuffer = Buffer.from(buffer);
 
+    // Safely access lastSubmittedReport
+    const reportTitle = globalThis.lastSubmittedReport?.title || 'Uploaded Image';
+    const reportDescription = globalThis.lastSubmittedReport?.description || 'Image attached';
+
     // Send webhook with both text and image
     await sendDiscordWebhook(
-      globalThis.lastSubmittedReport?.title || 'Uploaded Image', 
-      globalThis.lastSubmittedReport?.description || 'Image attached', 
+      reportTitle, 
+      reportDescription, 
       fileBuffer,
       file.name
     );

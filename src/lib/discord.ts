@@ -9,7 +9,12 @@ export async function sendDiscordWebhook(
 ) {
   const webhookUrl = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL;
   
-  console.log('Webhook called with:', { title, description, hasImage: !!imageBuffer });
+  console.log('Webhook called with:', { 
+    title, 
+    description, 
+    hasImage: !!imageBuffer,
+    webhookUrl: webhookUrl ? `${webhookUrl.substring(0, 20)}...` : 'missing' 
+  });
 
   if (!webhookUrl) {
     console.error('Discord webhook URL is missing');
@@ -19,7 +24,7 @@ export async function sendDiscordWebhook(
   try {
     // If no image, send simple text embed
     if (!imageBuffer) {
-      await axios.post(webhookUrl, {
+      const payload = {
         embeds: [{
           title: title ? `Bug Report: ${title}` : 'Bug Report',
           description: description || 'No description provided',
@@ -28,6 +33,15 @@ export async function sendDiscordWebhook(
             text: `Submitted at ${new Date().toLocaleString()}`
           }
         }]
+      };
+      
+      console.log('Sending text payload:', JSON.stringify(payload));
+      
+      const response = await axios.post(webhookUrl, payload);
+      
+      console.log('Discord API response:', {
+        status: response.status,
+        statusText: response.statusText
       });
       
       console.log('Text-only webhook message sent successfully');
@@ -65,7 +79,16 @@ export async function sendDiscordWebhook(
 
     console.log('Webhook message with image sent successfully');
   } catch (error) {
-    console.error('Discord webhook error:', error);
+    if (axios.isAxiosError(error)) {
+      console.error('Discord webhook error:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message
+      });
+    } else {
+      console.error('Discord webhook unknown error:', error);
+    }
     throw new Error('Failed to send report to Discord');
   }
 }

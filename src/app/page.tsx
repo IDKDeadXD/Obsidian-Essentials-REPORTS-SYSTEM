@@ -66,7 +66,7 @@ export default function ReportForm() {
     
     setIsSubmitting(true);
     setStatus('Submitting report...');
-
+  
     try {
       // First, submit the text report
       const textResponse = await fetch('/api/report', {
@@ -76,28 +76,28 @@ export default function ReportForm() {
           'Content-Type': 'application/json'
         }
       });
-
+  
       if (!textResponse.ok) {
         const errorData: ReportError = await textResponse.json();
         throw new Error(errorData.message || 'Submission failed');
       }
-
-      // If file exists, upload separately
+  
+      // Always make the PUT request, even if no file
+      const fileFormData = new FormData();
       if (file) {
-        const fileFormData = new FormData();
         fileFormData.append('file', file);
-        
-        const fileResponse = await fetch('/api/report', {
-          method: 'PUT',
-          body: fileFormData
-        });
-
-        if (!fileResponse.ok) {
-          const errorData: ReportError = await fileResponse.json();
-          throw new Error(errorData.message || 'File upload failed');
-        }
       }
-
+      
+      const fileResponse = await fetch('/api/report', {
+        method: 'PUT',
+        body: fileFormData
+      });
+  
+      if (!fileResponse.ok) {
+        const errorData: ReportError = await fileResponse.json();
+        throw new Error(errorData.message || 'File upload failed');
+      }
+  
       setStatus('Report submitted successfully!');
       
       // Clear all fields, including the file input
@@ -199,7 +199,7 @@ export default function ReportForm() {
               <span className="text-white text-sm">I understand and will use the system responsibly</span>
             </label>
           </div>
-          
+        
           <button
             type="submit"
             className={`w-full p-2 rounded transition border border-white ${

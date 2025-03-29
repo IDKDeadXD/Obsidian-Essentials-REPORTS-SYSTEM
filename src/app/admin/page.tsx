@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 export default function AdminPage() {
   const [username, setUsername] = useState('');
@@ -11,6 +11,44 @@ export default function AdminPage() {
   const [status, setStatus] = useState('');
   const [authCredentials, setAuthCredentials] = useState('');
 
+  // Create handleLogout function first to avoid circular dependency
+  const handleLogout = useCallback(() => {
+    setIsAuthenticated(false);
+    setAuthCredentials('');
+    localStorage.removeItem('authCredentials');
+    setUsername('');
+    setPassword('');
+  }, []);
+
+  // Create fetchBlacklistedIPs as a useCallback to use it in the dependency array
+  const fetchBlacklistedIPs = useCallback(async (credentials: string) => {
+    try {
+      const response = await fetch('/api/report', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${credentials}`
+        },
+        body: JSON.stringify({ action: 'list' })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setBlacklistedIPs(data.blacklistedIPs || []);
+      } else {
+        // If unauthorized, log the user out
+        if (response.status === 401) {
+          handleLogout();
+        }
+        setStatus('Failed to fetch blacklisted IPs');
+      }
+    } catch (error) {
+      // Silence the unused variable error by actually using it
+      console.error('Error fetching blacklisted IPs:', error);
+      setStatus('Error fetching blacklisted IPs');
+    }
+  }, [handleLogout]);
+
   useEffect(() => {
     // Check if authentication credentials are stored in localStorage
     const storedAuth = localStorage.getItem('authCredentials');
@@ -19,7 +57,7 @@ export default function AdminPage() {
       setIsAuthenticated(true);
       fetchBlacklistedIPs(storedAuth);
     }
-  }, []);
+  }, [fetchBlacklistedIPs]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,41 +90,8 @@ export default function AdminPage() {
         setStatus('Invalid credentials');
       }
     } catch (error) {
+      console.error('Login failed:', error);
       setStatus('Login failed. Please try again.');
-    }
-  };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setAuthCredentials('');
-    localStorage.removeItem('authCredentials');
-    setUsername('');
-    setPassword('');
-  };
-
-  const fetchBlacklistedIPs = async (credentials: string) => {
-    try {
-      const response = await fetch('/api/report', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${credentials}`
-        },
-        body: JSON.stringify({ action: 'list' })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setBlacklistedIPs(data.blacklistedIPs || []);
-      } else {
-        // If unauthorized, log the user out
-        if (response.status === 401) {
-          handleLogout();
-        }
-        setStatus('Failed to fetch blacklisted IPs');
-      }
-    } catch (error) {
-      setStatus('Error fetching blacklisted IPs');
     }
   };
 
@@ -115,6 +120,7 @@ export default function AdminPage() {
         setStatus('Failed to blacklist IP');
       }
     } catch (error) {
+      console.error('Error blacklisting IP:', error);
       setStatus('Error blacklisting IP');
     }
   };
@@ -141,6 +147,7 @@ export default function AdminPage() {
         setStatus('Failed to remove IP from blacklist');
       }
     } catch (error) {
+      console.error('Error removing from blacklist:', error);
       setStatus('Error removing IP from blacklist');
     }
   };

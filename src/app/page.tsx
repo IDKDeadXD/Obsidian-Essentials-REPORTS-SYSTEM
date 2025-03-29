@@ -51,7 +51,7 @@ export default function ReportForm() {
         setCurrentAnnouncement(CURRENT_ANNOUNCEMENT);
       }
     }
-  }, []);
+  }, [CURRENT_ANNOUNCEMENT, SHOW_ANNOUNCEMENT]); // Added the missing dependencies
 
   // Mark announcement as seen with the current version
   const closeAnnouncement = () => {

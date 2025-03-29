@@ -34,6 +34,7 @@ export default function ReportForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showAnnouncement, setShowAnnouncement] = useState(false);
   const [currentAnnouncement, setCurrentAnnouncement] = useState<Announcement | null>(null);
+  const [acknowledgedWarning, setAcknowledgedWarning] = useState(false);
 
   // Correct way to create a ref using useRef
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -103,6 +104,7 @@ export default function ReportForm() {
       setTitle('');
       setDescription('');
       setFile(null);
+      setAcknowledgedWarning(false);
       
       // Reset file input
       if (fileInputRef.current) {
@@ -180,14 +182,32 @@ export default function ReportForm() {
             disabled={isSubmitting}
             ref={fileInputRef}
           />
+          
+          {/* IP Blacklisting Warning */}
+          <div className="p-3 bg-red-900 bg-opacity-30 border border-red-500 rounded-md">
+            <p className="text-red-400 text-sm mb-2">
+              <strong>⚠️ Warning:</strong> Misuse or abuse of this reporting system (including spam, false reports, or malicious content) will result in your IP address being permanently blacklisted from our services.
+            </p>
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input 
+                type="checkbox" 
+                checked={acknowledgedWarning}
+                onChange={(e) => setAcknowledgedWarning(e.target.checked)}
+                className="border border-white rounded"
+                required
+              />
+              <span className="text-white text-sm">I understand and will use the system responsibly</span>
+            </label>
+          </div>
+          
           <button
             type="submit"
             className={`w-full p-2 rounded transition border border-white ${
-              isSubmitting 
+              isSubmitting || !acknowledgedWarning
                 ? 'bg-gray-900 text-gray-500 cursor-not-allowed' 
                 : 'bg-black text-white hover:bg-gray-900'
             }`}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !acknowledgedWarning}
           >
             {isSubmitting ? 'Submitting...' : 'Submit Report'}
           </button>

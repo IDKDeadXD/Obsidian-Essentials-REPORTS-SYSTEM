@@ -1,21 +1,62 @@
 'use client';
 
-import { useState, FormEvent, useRef } from 'react';
+import { useState, FormEvent, useRef, useEffect } from 'react';
 
 // Define a custom error type
 interface ReportError {
   message?: string;
 }
 
+// Define announcement type
+interface Announcement {
+  id: string;
+  title: string;
+  content: string;
+  version: number;
+}
+
 export default function ReportForm() {
+  // Current announcement configuration
+  const CURRENT_ANNOUNCEMENT: Announcement = {
+    id: 'release-2.0',
+    title: '2.0 Release',
+    content: 'We are currently focused on developing version 2.0 of the add-on. If you are experiencing missing features or functionality issues, please note that we are already aware of these limitations. Our development efforts are prioritized on completing and launching the 2.0 release as soon as possible.',
+    version: 1 // Increment this when you want to show a new announcement
+  };
+  
+  // Toggle to enable/disable announcements
+  const SHOW_ANNOUNCEMENT = true;
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showAnnouncement, setShowAnnouncement] = useState(false);
+  const [currentAnnouncement, setCurrentAnnouncement] = useState<Announcement | null>(null);
 
   // Correct way to create a ref using useRef
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Check if the user has already seen the current version of the announcement
+  useEffect(() => {
+    // Only run client-side
+    if (typeof window !== 'undefined') {
+      const lastSeenVersion = localStorage.getItem('announcementVersion');
+      
+      // If announcement is enabled and user hasn't seen this version yet
+      if (SHOW_ANNOUNCEMENT && (!lastSeenVersion || parseInt(lastSeenVersion) < CURRENT_ANNOUNCEMENT.version)) {
+        setShowAnnouncement(true);
+        setCurrentAnnouncement(CURRENT_ANNOUNCEMENT);
+      }
+    }
+  }, []);
+
+  // Mark announcement as seen with the current version
+  const closeAnnouncement = () => {
+    setShowAnnouncement(false);
+    localStorage.setItem('announcementVersion', CURRENT_ANNOUNCEMENT.version.toString());
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -81,6 +122,37 @@ export default function ReportForm() {
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4 relative">
+      {/* Announcement Modal */}
+      {showAnnouncement && currentAnnouncement && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-black border-2 border-white p-8 rounded-lg shadow-xl w-full max-w-md relative animate-fadeIn">
+            <button
+              onClick={closeAnnouncement}
+              className="absolute top-2 right-2 text-white hover:text-gray-300"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+            
+            <div className="text-white">
+              <h2 className="text-xl font-bold mb-2">{currentAnnouncement.title}</h2>
+              <hr className="border-white mb-4" />
+              <p className="mb-4">
+                {currentAnnouncement.content}
+              </p>
+              <button
+                onClick={closeAnnouncement}
+                className="w-full p-2 bg-black text-white border border-white rounded hover:bg-gray-900 transition mt-2"
+              >
+                Understood
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="bg-black border-2 border-white p-8 rounded-lg shadow-xl w-full max-w-md">
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
